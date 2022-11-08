@@ -111,24 +111,57 @@ const loginStudent = async function (req, res) {
         .status(404)
         .send({ status: false, message: " Email/Password is Not Matched" });
     }
-    
-    const token = jwt.sign(
-        {
-            userId: matchStd._id.toString(),
-            Project: "student Profile",
-            iat: new Date().getTime() / 1000 //(iat)Issued At- the time at which the JWT was issued.              
-        },
-        "This is my secret key",
-        {
-            expiresIn: "12000sec",
-        });
 
-        res.setHeader("x-student-key", token)
-        return res.status(200).send({ status: true, message: "Student Logged in successfully", data: token, });
-     
+    const token = jwt.sign(
+      {
+        userId: matchStd._id.toString(),
+        Project: "student Profile",
+        iat: new Date().getTime() / 1000, //(iat)Issued At- the time at which the JWT was issued.
+      },
+      "This is my secret key",
+      {
+        expiresIn: "12000sec",
+      }
+    );
+
+    res.setHeader("x-student-key", token);
+    return res.status(200).send({
+      status: true,
+      message: "Student Logged in successfully",
+      data: token,
+    });
   } catch (error) {
     res.status(500).send({ status: false, message: error.message });
   }
 };
 
-module.exports = { stdProfile ,loginStudent};
+//getStudent
+
+const getStudent = async function (req, res) {
+  try {
+    let data = req.query;
+
+    if (Object.keys(data).length == 0) {
+      let allStudents = await studentModel.find();
+      if (allStudents) {
+        return res
+          .status(200)
+          .send({ status: true, message: "Success", data: allStudents });
+      }
+    }
+
+    let Class = req.query.Class;
+
+    let studentDetails = await studentModel.find({ Class: Class });
+    return res.status(200).send({
+      status: true,
+      message: "Student details found successfully",
+      data: studentDetails,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, message: err.message });
+  }
+};
+
+
+module.exports = { stdProfile, loginStudent, getStudent };

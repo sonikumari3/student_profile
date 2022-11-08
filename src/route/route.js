@@ -5,4 +5,6 @@ const studentController = require("../controller/studentController.js");
 
 router.post("/StdData", studentController.stdProfile);
 router.post("/stdLogin", studentController.loginStudent);
+router.get("/stdDetails", studentController.getStudent);
+
 module.exports = router;
