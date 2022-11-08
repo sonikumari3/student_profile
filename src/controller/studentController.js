@@ -1,5 +1,6 @@
 const studentModel = require("../model/studentModel");
 const validator = require("../utils/validator");
+const jwt = require("jsonwebtoken");
 
 const stdProfile = async function (req, res) {
   try {
@@ -73,4 +74,61 @@ const stdProfile = async function (req, res) {
   }
 };
 
-module.exports = { stdProfile };
+//login Student
+const loginStudent = async function (req, res) {
+  try {
+    let data = req.body;
+
+    if (!validator.isValidRequestBody(data)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Plz enter some data." });
+    }
+
+    const { email, password } = data;
+
+    if (!validator.isValid(email)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Email is required." });
+    }
+
+    if (!validator.isValidEmail.test(email)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Please enter valid a email " });
+    }
+
+    if (!validator.isValid(password)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Password is required." });
+    }
+
+    const matchStd = await studentModel.findOne({ email, password });
+    if (!matchStd) {
+      return res
+        .status(404)
+        .send({ status: false, message: " Email/Password is Not Matched" });
+    }
+    
+    const token = jwt.sign(
+        {
+            userId: matchStd._id.toString(),
+            Project: "student Profile",
+            iat: new Date().getTime() / 1000 //(iat)Issued At- the time at which the JWT was issued.              
+        },
+        "This is my secret key",
+        {
+            expiresIn: "12000sec",
+        });
+
+        res.setHeader("x-student-key", token)
+        return res.status(200).send({ status: true, message: "Student Logged in successfully", data: token, });
+     
+  } catch (error) {
+    res.status(500).send({ status: false, message: error.message });
+  }
+};
+
+module.exports = { stdProfile ,loginStudent};
